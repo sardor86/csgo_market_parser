@@ -45,9 +45,9 @@ PAGE_404_XPATH = '/html/body/app-root/div/app-main-site/div/app-not-found/sectio
 class BaseDriver(uc.Chrome):
     def __init__(self) -> None:
         chrome_options = uc.ChromeOptions()
-        chrome_options.add_argument('--headless')
 
         super().__init__(options=chrome_options)
+        self.set_window_size(1920, 1080)
 
         self.skins_data = []
         self.items_data = []

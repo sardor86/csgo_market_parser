@@ -3,7 +3,7 @@ from driver import Driver
 from openpyxl import Workbook
 
 
-def save_skin_data(skins_data: list) -> None:
+def save_data(skins_data: list, items_data: list) -> None:
     wb = Workbook()
 
     for skin_data in skins_data:
@@ -22,12 +22,6 @@ def save_skin_data(skins_data: list) -> None:
         ws['D2'] = skin_data[2]
         ws['E2'] = skin_data[5]
 
-    wb.save('data.xlsx')
-
-
-def save_items_data(items_data: list) -> None:
-    wb = Workbook()
-
     row = 2
 
     wb.create_sheet('all_items')
@@ -44,11 +38,10 @@ def save_items_data(items_data: list) -> None:
         try:
             ws['A' + str(row)] = item_data[0]
             ws['B' + str(row)] = item_data[1]
-            ws['C' + str(row)] = item_data[2]
-            ws['D' + str(row)] = item_data[3]
-            ws['E' + str(row)] = item_data[4]
-            ws['F' + str(row)] = item_data[5]
-
+            ws['C' + str(row)] = item_data[3]
+            ws['D' + str(row)] = item_data[4]
+            ws['E' + str(row)] = item_data[2]
+            ws['F' + str(row)] = item_data[-1]
             row += 1
         except:
             pass
@@ -67,8 +60,8 @@ def main():
     driver = Driver()
 
     while True:
-        username = input('Введите свой логин: ')
-        password = input('Введите свой пароль: ')
+        username = input('username: ')
+        password = input('password: ')
 
         if driver.log_in(username, password):
             break
@@ -78,10 +71,9 @@ def main():
     print('Вход был успешным')
 
     driver.parsing_skins(get_link('data.txt'))
-    save_skin_data(driver.skins_data)
 
     driver.parsing_items()
-    save_items_data(driver.items_data)
+    save_data(driver.skins_data, driver.items_data)
 
 
 if __name__ == '__main__':

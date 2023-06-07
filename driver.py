@@ -73,9 +73,10 @@ class Driver(BaseDriver):
                     skin_data.append('error')
 
             try:
-                skin_data.append([])
+                self.wait.until(EC.presence_of_element_located((By.XPATH, SKIN_STICKERS_XPATH)))
+                skin_data.append('')
                 for skin in self.find_element(By.XPATH, SKIN_STICKERS_XPATH).find_elements(By.TAG_NAME, 'a'):
-                    skin_data[-1].append(skin.get_attribute('title'))
+                    skin_data[-1] += skin.get_attribute('title') + ','
             except:
                 skin_data[-1] = 'none'
 
@@ -115,7 +116,7 @@ class Driver(BaseDriver):
                     self.items_link.append(item_link.get_attribute('href'))
 
     def parsing_items(self) -> None:
-        print('парсинг скинов')
+        print('парсинг предметов')
         for item_link in tqdm(self.items_link):
             item_data = []
 
@@ -142,9 +143,10 @@ class Driver(BaseDriver):
                     item_data.append('error')
 
             try:
-                item_data.append([])
+                self.wait.until(EC.presence_of_element_located((By.XPATH, SKIN_STICKERS_XPATH)))
+                item_data.append('')
                 for skin in self.find_element(By.XPATH, SKIN_STICKERS_XPATH).find_elements(By.TAG_NAME, 'a'):
-                    item_data[-1].append(skin.get_attribute('title'))
+                    item_data[-1] += skin.get_attribute('title') + ','
             except:
                 item_data[-1] = 'none'
 
@@ -174,4 +176,5 @@ class Driver(BaseDriver):
                 item_data.append('Item with specified asset not found')
                 item_data.append('Item with specified asset not found')
 
+            item_data.append(item_link)
             self.items_data.append(item_data)
