@@ -1,5 +1,8 @@
 import undetected_chromedriver as uc
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 BROWSER_SETTINGS = 'user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                    'Chrome/51.0.2704.103 Safari/537.36'
@@ -20,8 +23,7 @@ SKIN_NAME_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-
                    'app-page-inventory-info-wrap/div/app-full-item-info/div/h1/span'
 SKIN_PRICE_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-info/div/' \
                    'app-page-inventory-info-wrap/div/div[1]/div/span[1]'
-SKIN_STICKERS_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-info/' \
-                      'div/app-page-inventory-info-wrap/div/app-full-item-info/div/div[1]/app-full-item-info-stickers'
+SKIN_STICKERS_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-info/div/app-page-inventory-info-wrap/div/app-full-item-info/div/div[2]/app-full-item-info-stickers'
 SKIN_VIEW_IN_3D_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-info/' \
                         'div/app-page-inventory-image/div/div/div[2]/div[1]/button'
 SKIN_IFRAME_XPATH = '/html/body/div[3]/div[2]/div/mat-dialog-container/div/div/' \
@@ -39,7 +41,10 @@ SKIN_ITEMS_LINK = '/html/body/app-root/div/app-main-site/div/' \
 SKIN_PRICE_ERROR_XPATH = '/html/body/app-root/div/app-main-site/' \
                          'div/app-full-inventory-info/div/app-page-inventory-info-wrap/div/app-item-failed-status/div'
 
-PAGE_404_XPATH = '/html/body/app-root/div/app-main-site/div/app-not-found/section/div/h2'
+FAST_SKIN_PATTERN_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-info/' \
+                          'div/app-page-inventory-info-wrap/div/app-full-item-info/div/div[3]/div[3]/div'
+FAST_SKIN_FLOAT_XPATH = '/html/body/app-root/div/app-main-site/div/app-full-inventory-info/div/' \
+                        'app-page-inventory-info-wrap/div/app-full-item-info/div/div[4]/div[2]'
 
 
 class BaseDriver(uc.Chrome):
@@ -53,5 +58,12 @@ class BaseDriver(uc.Chrome):
         self.items_data = []
 
         self.items_link = []
-        self.wait = WebDriverWait(self, 60)
+        self.fast_items_link = []
 
+    def driver_sleep(self, time: int, xpath: str) -> bool:
+        try:
+            wait = WebDriverWait(self, time)
+            wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
