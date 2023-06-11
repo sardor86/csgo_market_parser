@@ -7,8 +7,8 @@ def save_data(skins_data: list, items_data: list) -> None:
     wb = Workbook()
 
     for skin_data in skins_data:
-        wb.create_sheet(skin_data[0][0:31])
-        ws = wb[skin_data[0][0:31]]
+        wb.create_sheet(skin_data['name'][0:31])
+        ws = wb[skin_data['name'][0:31]]
 
         ws['A1'] = 'price'
         ws['B1'] = 'float'
@@ -16,11 +16,11 @@ def save_data(skins_data: list, items_data: list) -> None:
         ws['D1'] = 'sticker'
         ws['E1'] = 'link'
 
-        ws['A2'] = skin_data[1]
-        ws['B2'] = skin_data[3]
-        ws['C2'] = skin_data[4]
-        ws['D2'] = skin_data[2]
-        ws['E2'] = skin_data[5]
+        ws['A2'] = skin_data['price']
+        ws['B2'] = skin_data['float']
+        ws['C2'] = skin_data['pattern']
+        ws['D2'] = skin_data['stickers']
+        ws['E2'] = skin_data['url']
 
     row = 2
 
@@ -36,12 +36,12 @@ def save_data(skins_data: list, items_data: list) -> None:
 
     for item_data in items_data:
         try:
-            ws['A' + str(row)] = item_data[0]
-            ws['B' + str(row)] = item_data[1]
-            ws['C' + str(row)] = item_data[3]
-            ws['D' + str(row)] = item_data[4]
-            ws['E' + str(row)] = item_data[2]
-            ws['F' + str(row)] = item_data[-1]
+            ws['A' + str(row)] = item_data['name']
+            ws['B' + str(row)] = item_data['price']
+            ws['C' + str(row)] = item_data['float']
+            ws['D' + str(row)] = item_data['pattern']
+            ws['E' + str(row)] = item_data['stickers']
+            ws['F' + str(row)] = item_data['url']
             row += 1
         except:
             pass
@@ -60,8 +60,8 @@ def main():
     driver = Driver()
 
     while True:
-        username = input('username: ')
-        password = input('password: ')
+        username = input('Введите свой логин: ')
+        password = input('Введите свой пароль: ')
 
         if driver.log_in(username, password):
             break
