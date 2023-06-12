@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException, TimeoutException, \
+    ElementClickInterceptedException
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 
 from config import BaseDriver, URL, \
@@ -86,11 +86,11 @@ class Driver(BaseDriver):
             except NoSuchElementException:
                 data['price'] = 'error'
 
-        if self.driver_sleep(5, SKIN_STICKERS_XPATH):
+        try:
             data['stickers'] = ''
             for skin in self.find_element(By.XPATH, SKIN_STICKERS_XPATH).find_elements(By.TAG_NAME, 'a'):
                 data['stickers'] += skin.get_attribute('title') + ','
-        else:
+        except NoSuchElementException:
             data['stickers'] = 'none'
 
         data['url'] = url
@@ -151,7 +151,7 @@ class Driver(BaseDriver):
             data['pattern'] = self.find_element(By.XPATH,
                                                 SKIN_PATTERN_XPATH).find_element(By.CLASS_NAME,
                                                                                  'is-selected').text.split('#')[-1]
-        except (NoSuchElementException, TimeoutException):
+        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
             data['pattern'] = 'error'
 
         return data
@@ -164,22 +164,18 @@ class Driver(BaseDriver):
             if data:
                 self.skins_data.append(data)
 
-            print(data)
-
             self.switch_to.default_content()
             self.get_items_url()
 
     def parsing_items(self) -> None:
-        print(f'парсинг предметов\n предметов: {len(self.fast_items_link) + len(self.items_link)}')
+        print(f'парсинг предметов\nпредметов: {len(self.fast_items_link) + len(self.items_link)}')
 
         for item_link in tqdm(self.fast_items_link):
             data = self.fast_items_pars(item_link)
             if data:
                 self.items_data.append(data)
-                print(data)
 
         for item_link in tqdm(self.items_link):
             data = self.parse_data(item_link)
             if data:
                 self.items_data.append(data)
-                print(data)

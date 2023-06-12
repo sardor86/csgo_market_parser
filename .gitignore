@@ -1,0 +1,9 @@
+.idea/
+venv/
+__pycache__/
+build/
+dist/
+data.txt
+data.xlsx
+main.spec
+drivers
