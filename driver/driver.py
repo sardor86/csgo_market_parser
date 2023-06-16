@@ -8,7 +8,7 @@ from config import BaseDriver, URL, \
     STEAM_LOGIN_BUTTON_XPATH, STEAM_USERNAME_INPUT_XPATH, STEAM_PASSWORD_INPUT_XPATH, \
     STEAM_LOGIN_BUTTON_START_XPATH, STEAM_LOGIN_ERROR, STEAM_FINAL_LOGIN_BUTTON_XPATH
 
-from config import SKIN_NAME_XPATH, SKIN_PRICE_XPATH, SKIN_STICKERS_XPATH, SKIN_VIEW_IN_3D_XPATH, SKIN_IFRAME_XPATH, \
+from config import SKIN_NAME_XPATH, SKIN_PRICE_XPATH, SKIN_VIEW_IN_3D_XPATH, SKIN_IFRAME_XPATH, \
     SKIN_FLOT_XPATH, SKIN_PATTERN_BUTTON_XPATH, SKIN_PATTERN_LIST_XPATH, SKIN_PATTERN_XPATH
 
 from config import CLOUD_FLARE_XPATH, CLOUD_FLARE_IFRAME_XPATH, SKIN_PRICE_ERROR_XPATH
@@ -23,7 +23,7 @@ import random
 
 
 class Driver(BaseDriver):
-    def log_in(self, username: str, password: str) -> bool:
+    def skip_captcha(self) -> None:
         print('Обход Защиты')
         self.get(URL)
 
@@ -38,8 +38,11 @@ class Driver(BaseDriver):
                 self.switch_to.frame(self.find_element(By.XPATH, CLOUD_FLARE_IFRAME_XPATH))
                 self.find_element(By.XPATH, CLOUD_FLARE_XPATH).click()
             except (NoSuchElementException, WebDriverException):
-                if self.driver_sleep(int(random.random() * 10), STEAM_LOGIN_BUTTON_START_XPATH):
+                if self.driver_sleep(int(random.random() * 5), STEAM_LOGIN_BUTTON_START_XPATH):
                     break
+
+    def log_in(self, username: str, password: str) -> bool:
+        self.skip_captcha()
 
         print('Вход в аккаунт')
         self.find_element(By.XPATH, STEAM_LOGIN_BUTTON_START_XPATH).click()
@@ -58,14 +61,17 @@ class Driver(BaseDriver):
             self.find_element(By.XPATH, STEAM_FINAL_LOGIN_BUTTON_XPATH).click()
             return True
 
-    def get_items_url(self) -> None:
+    def get_items_url(self) -> dict:
+        items_url = {'fast_items': [],
+                     'items': []}
         items = self.find_element(By.XPATH, SKIN_ITEMS_LINK).find_elements(By.TAG_NAME, 'a')
         for item in items:
             try:
                 item.find_element(By.CLASS_NAME, 'mat-mdc-tooltip-trigger')
-                self.fast_items_link.append(item.get_attribute('href'))
+                items_url['fast_items'].append(item.get_attribute('href'))
             except NoSuchElementException:
-                self.items_link.append(item.get_attribute('href'))
+                items_url['items'].append(item.get_attribute('href'))
+        return items_url
 
     def base_pars_data(self, url: str) -> [dict, bool]:
         data = {}
@@ -86,13 +92,6 @@ class Driver(BaseDriver):
             except NoSuchElementException:
                 data['price'] = 'error'
 
-        try:
-            data['stickers'] = ''
-            for skin in self.find_element(By.XPATH, SKIN_STICKERS_XPATH).find_elements(By.TAG_NAME, 'a'):
-                data['stickers'] += skin.get_attribute('title') + ','
-        except NoSuchElementException:
-            data['stickers'] = 'none'
-
         data['url'] = url
 
         return data
@@ -104,16 +103,14 @@ class Driver(BaseDriver):
             return False
 
         try:
-            self.driver_sleep(15, FAST_SKIN_PATTERN_XPATH)
-            data['pattern'] = self.find_element(By.XPATH, FAST_SKIN_PATTERN_XPATH).text
-        except NoSuchElementException:
-            data['pattern'] = 'error'
-
-        try:
-            self.driver_sleep(15, FAST_SKIN_FLOAT_XPATH)
             data['float'] = self.find_element(By.XPATH, FAST_SKIN_FLOAT_XPATH).text.split(' ')[0]
         except NoSuchElementException:
             data['float'] = 'Item with specified asset not found'
+
+        try:
+            data['pattern'] = self.find_element(By.XPATH, FAST_SKIN_PATTERN_XPATH).text.split(' ')[0]
+        except NoSuchElementException:
+            data['pattern'] = 'error'
 
         return data
 
@@ -161,21 +158,24 @@ class Driver(BaseDriver):
         for skin_link in tqdm(skins_list):
             data = self.parse_data(skin_link)
 
-            if data:
-                self.skins_data.append(data)
+            if not data:
+                continue
 
             self.switch_to.default_content()
-            self.get_items_url()
+            items_url = self.get_items_url()
 
-    def parsing_items(self) -> None:
-        print(f'парсинг предметов\nпредметов: {len(self.fast_items_link) + len(self.items_link)}')
+            data['items_data'] = []
 
-        for item_link in tqdm(self.fast_items_link):
-            data = self.fast_items_pars(item_link)
-            if data:
-                self.items_data.append(data)
+            for item_link in tqdm(items_url['fast_items']):
+                item_data = self.fast_items_pars(item_link)
+                if item_data:
+                    data['items_data'].append(item_data)
+                    self.items_data.append(item_data)
 
-        for item_link in tqdm(self.items_link):
-            data = self.parse_data(item_link)
-            if data:
-                self.items_data.append(data)
+            for item_link in tqdm(items_url['items']):
+                item_data = self.parse_data(item_link)
+                if item_data:
+                    data['items_data'].append(item_data)
+                    self.items_data.append(item_data)
+
+        self.skins_data.append(data)

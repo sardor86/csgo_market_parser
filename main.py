@@ -13,8 +13,8 @@ def main():
     driver = Driver()
 
     while True:
-        username = input('Введите свой логин: ')
-        password = input('Введите свой пароль: ')
+        username = 'something123445'
+        password = '35chx8u3F9gK6dd'
 
         if driver.log_in(username, password):
             break
@@ -23,12 +23,12 @@ def main():
 
     print('Вход был успешным')
 
-    driver.parsing_skins(get_link('data.txt'))
-    driver.parsing_items()
+    driver.parsing_skins(get_link(PATH / 'data.txt'))
 
     file_data = Data(PATH / 'data.xlsx')
     file_data.save_skin(driver.skins_data)
     file_data.save_items(driver.items_data)
+    file_data.save()
 
 
 if __name__ == '__main__':
